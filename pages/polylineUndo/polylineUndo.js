@@ -172,8 +172,84 @@ window.addEventListener("keydown", (event) => {
     polylineService.send(event.key);
 });
 
-// bouton Undo
+
 const undoButton = document.getElementById("undo");
 undoButton.addEventListener("click", () => {
     
 });
+
+class Command {
+    execute() {}
+    undo() {}
+}
+
+class ConcreteCommand extends Command {
+    constructor(polyline, layer) {
+        super();
+        this.polyline = polyline;
+        this.layer = layer;
+    }
+
+    execute() {
+        this.layer.add(this.polyline);
+        this.layer.Line();
+    }
+
+    undo() {
+        this.polyline.remove();
+        this.layer.Line();
+    }
+}
+class UndoManager {
+    constructor() {
+        this.undoStack = new Stack();
+        this.redoStack = new Stack();
+    }
+
+    execute(command) {
+        command.execute();
+        this.undoStack.push(command);
+        this.redoStack.clear(); // On vide le redoStack quand une nouvelle commande est exécutée
+    }
+
+    undo() {
+        if (!this.undoStack.isEmpty()) {
+            const command = this.undoStack.pop();
+            command.undo();
+            this.redoStack.push(command);
+        }
+    }
+
+    redo() {
+        if (!this.redoStack.isEmpty()) {
+            const command = this.redoStack.pop();
+            command.execute();
+            this.undoStack.push(command);
+        }
+    }
+
+   
+}
+const undoManager = new UndoManager();
+
+const undoButton1 = document.getElementById("undo");
+undoButton.addEventListener("click", () => {
+    undoManager.undo();
+    undoButton.disabled = !undoManager.canUndo();
+    redoButton.disabled = !undoManager.canRedo();
+});
+
+const redoButton = document.getElementById("redo");
+redoButton.addEventListener("click", () => {
+    undoManager.redo();
+    undoButton.disabled = !undoManager.canUndo();
+    redoButton.disabled = !undoManager.canRedo();
+});
+
+    
+
+
+
+
+
+
